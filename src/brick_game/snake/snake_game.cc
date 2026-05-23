@@ -5,6 +5,8 @@
 #include <random>
 #include <vector>
 
+#include "snake_storage.h"
+
 namespace s21 {
 
 namespace {
@@ -35,6 +37,8 @@ SnakeGame::SnakeGame()
       accelerated_(false),
       boost_steps_remaining_(0),
       last_tick_ms_(0),
+      score_(0),
+      high_score_(0),
       info_{},
       use_time_override_(false),
       current_time_override_ms_(0) {
@@ -74,8 +78,8 @@ void SnakeGame::ResetToMenu() {
   accelerated_ = false;
   boost_steps_remaining_ = 0;
   last_tick_ms_ = NowMs();
-  info_.score = 0;
-  info_.high_score = 0;
+  score_ = 0;
+  high_score_ = LoadSnakeHighScore();
   info_.level = 1;
   info_.speed = 1;
   info_.pause = 0;
@@ -93,6 +97,7 @@ void SnakeGame::StartGame() {
   accelerated_ = false;
   boost_steps_remaining_ = 0;
   last_tick_ms_ = NowMs();
+  score_ = 0;
   SyncInfo();
 }
 
@@ -208,6 +213,11 @@ void SnakeGame::Step() {
   }
 
   if (grows) {
+    ++score_;
+    if (score_ > high_score_) {
+      high_score_ = score_;
+      SaveSnakeHighScore(high_score_);
+    }
     SpawnApple();
   }
 
@@ -226,8 +236,8 @@ void SnakeGame::SyncInfo() {
     const Position& cell = snake_[index];
     field_storage_[cell.row][cell.col] = (index + 1 == snake_.size()) ? 3 : 1;
   }
-  info_.score = 0;
-  info_.high_score = 0;
+  info_.score = score_;
+  info_.high_score = high_score_;
   info_.level = 1;
   info_.speed = CurrentDelayMs() == kBoostDelayMs ? 2 : 1;
   info_.pause = paused_ ? 1 : 0;
@@ -321,6 +331,10 @@ bool SnakeGame::IsPaused() const { return paused_; }
 const std::deque<SnakeGame::Position>& SnakeGame::GetSnake() const { return snake_; }
 
 SnakeGame::Position SnakeGame::GetApple() const { return apple_; }
+
+int SnakeGame::GetScore() const { return score_; }
+
+int SnakeGame::GetHighScore() const { return high_score_; }
 
 void SnakeGame::SetCurrentTimeForTests(const uint64_t now_ms) {
   use_time_override_ = true;

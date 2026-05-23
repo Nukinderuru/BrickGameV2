@@ -12,6 +12,7 @@ SOURCES += \
     ../../src/controller/tetris_adapter.cc \
     ../../src/brick_game/snake/snake_api.cc \
     ../../src/brick_game/snake/snake_game.cc \
+    ../../src/brick_game/snake/snake_storage.cc \
     ../../src/brick_game/tetris/tetris.c \
     ../../src/brick_game/tetris/tetris_board.c \
     ../../src/brick_game/tetris/tetris_fsm.c \
@@ -31,6 +32,7 @@ HEADERS += \
     ../../src/brick_game/common/brick_game_types.h \
     ../../src/brick_game/snake/snake.h \
     ../../src/brick_game/snake/snake_game.h \
+    ../../src/brick_game/snake/snake_storage.h \
     ../../src/brick_game/tetris/tetris.h \
     ../../src/brick_game/tetris/tetris_ui_bridge.h \
     ../../src/gui/desktop/board_widget.h \

@@ -26,13 +26,15 @@ CLI_CPP_SRC = \
 	src/controller/tetris_adapter.cc \
 	src/brick_game/snake/snake_api.cc \
 	src/brick_game/snake/snake_game.cc \
+	src/brick_game/snake/snake_storage.cc \
 	src/gui/cli/cli_app.cc \
 	src/gui/cli/main.cc
 
 TEST_SRC = \
 	tests/test_main.cc \
 	tests/test_snake_fsm.cc \
-	tests/test_snake_gameplay.cc
+	tests/test_snake_gameplay.cc \
+	tests/test_snake_score.cc
 
 TETRIS_OBJ = $(patsubst src/%.c,$(OBJ_DIR)/%.o,$(TETRIS_SRC))
 CLI_CPP_OBJ = $(patsubst src/%.cc,$(OBJ_DIR)/%.o,$(CLI_CPP_SRC))
@@ -82,7 +84,8 @@ tests:
 	@test -f /usr/include/gtest/gtest.h || \
 		(printf 'GTest headers are not installed under /usr/include/gtest\n' && exit 1)
 	$(CXX) $(CXXFLAGS) -I./src $(TEST_SRC) src/brick_game/snake/snake_api.cc \
-		src/brick_game/snake/snake_game.cc -lgtest -lgtest_main -lpthread -o $(BUILD_DIR)/tests
+		src/brick_game/snake/snake_game.cc src/brick_game/snake/snake_storage.cc \
+		-lgtest -lgtest_main -lpthread -o $(BUILD_DIR)/tests
 	$(BUILD_DIR)/tests
 
 gcov_report:
@@ -93,6 +96,7 @@ gcov_report:
 	rm -rf $(REPORT_DIR)/html $(REPORT_DIR)/coverage.info
 	$(CXX) $(CXXFLAGS) $(GCOV_FLAGS) -I./src $(TEST_SRC) \
 		src/brick_game/snake/snake_api.cc src/brick_game/snake/snake_game.cc \
+		src/brick_game/snake/snake_storage.cc \
 		-lgtest -lgtest_main -lpthread -o $(BUILD_DIR)/tests_coverage
 	./$(BUILD_DIR)/tests_coverage
 	@if command -v lcov >/dev/null 2>&1 && command -v genhtml >/dev/null 2>&1; then \
@@ -100,7 +104,7 @@ gcov_report:
 		lcov --extract $(REPORT_DIR)/coverage.info '*/src/brick_game/snake/*' --output-file $(REPORT_DIR)/coverage.info --rc lcov_branch_coverage=1; \
 		genhtml $(REPORT_DIR)/coverage.info --output-directory $(REPORT_DIR)/html --branch-coverage; \
 	else \
-		gcov -r $(BUILD_DIR)/tests_coverage-snake_api.gcno $(BUILD_DIR)/tests_coverage-snake_game.gcno | tee $(REPORT_DIR)/coverage.txt; \
+		gcov -r $(BUILD_DIR)/tests_coverage-snake_api.gcno $(BUILD_DIR)/tests_coverage-snake_game.gcno $(BUILD_DIR)/tests_coverage-snake_storage.gcno | tee $(REPORT_DIR)/coverage.txt; \
 		mv -f *.gcov $(REPORT_DIR)/; \
 	fi
 

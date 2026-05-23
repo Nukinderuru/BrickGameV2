@@ -46,6 +46,8 @@ class SnakeGame {
   bool IsPaused() const;
   const std::deque<Position>& GetSnake() const;
   Position GetApple() const;
+  int GetScore() const;
+  int GetHighScore() const;
 
   void SetCurrentTimeForTests(uint64_t now_ms);
   void ClearCurrentTimeOverrideForTests();
@@ -90,6 +92,8 @@ class SnakeGame {
   bool accelerated_;
   int boost_steps_remaining_;
   uint64_t last_tick_ms_;
+  int score_;
+  int high_score_;
   GameInfo_t info_;
 
   bool use_time_override_;
