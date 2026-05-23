@@ -14,11 +14,11 @@ class CliApp {
 
  private:
   void HandleInput(int ch);
-  void Render();
+  void Render() const;
   void RenderMenu() const;
   void RenderGame() const;
-  void RenderOverlay(ViewStatus status) const;
-  void DrawCell(int row, int col, int value) const;
+  static void RenderOverlay(ViewStatus status) ;
+  static void DrawCell(int row, int col, int value) ;
 
   AppController controller_;
   GameInfo_t current_info_;

@@ -1,8 +1,8 @@
 #include "cli_app.h"
 
-#include <locale.h>
+#include <clocale>
 #include <ncurses.h>
-#include <time.h>
+#include <ctime>
 
 #include <cstring>
 #include <vector>
@@ -74,15 +74,14 @@ CliApp::~CliApp() { endwin(); }
 
 int CliApp::Run() {
   while (controller_.GetAppState() != AppState::kExiting) {
-    const int ch = getch();
-    if (ch != ERR) {
+    if (const int ch = getch(); ch != ERR) {
       HandleInput(ch);
     }
     if (controller_.GetAppState() == AppState::kPlaying) {
       current_info_ = controller_.GetActiveGame().Update();
     }
     Render();
-    const struct timespec sleep_time = {.tv_sec = 0, .tv_nsec = 16000000L};
+    constexpr timespec sleep_time = {.tv_sec = 0, .tv_nsec = 16000000L};
     nanosleep(&sleep_time, nullptr);
   }
   return 0;
@@ -147,7 +146,7 @@ void CliApp::HandleInput(const int ch) {
   }
 }
 
-void CliApp::Render() {
+void CliApp::Render() const {
   erase();
   if (controller_.GetAppState() == AppState::kMenu) {
     RenderMenu();
@@ -205,22 +204,22 @@ void CliApp::RenderGame() const {
   RenderOverlay(game.GetViewStatus());
 }
 
-void CliApp::RenderOverlay(const ViewStatus status) const {
+void CliApp::RenderOverlay(const ViewStatus status) {
   const char* line1 = StatusTitle(status);
   const char* line2 = StatusHint(status);
   if (line1 == nullptr || line2 == nullptr) {
     return;
   }
 
-  const int field_left = 2;
-  const int field_width = 22;
-  const int box_top = 9;
-  const int box_width = 18;
-  const int box_left = field_left + (field_width - box_width) / 2;
-  const int box_height = 6;
-  const int inner_width = box_width - 2;
-  char border[19] = {0};
-  char blank[17] = {0};
+  constexpr int field_left = 2;
+  constexpr int field_width = 22;
+  constexpr int box_top = 9;
+  constexpr int box_width = 18;
+  constexpr int box_left = field_left + (field_width - box_width) / 2;
+  constexpr int box_height = 6;
+  constexpr int inner_width = box_width - 2;
+  char border[19] = {};
+  char blank[17] = {};
   const int line1_col = box_left + 1 + (inner_width - static_cast<int>(strlen(line1))) / 2;
   const int line2_col = box_left + 1 + (inner_width - static_cast<int>(strlen(line2))) / 2;
 
@@ -242,7 +241,7 @@ void CliApp::RenderOverlay(const ViewStatus status) const {
   mvprintw(box_top + 3, line2_col, "%s", line2);
 }
 
-void CliApp::DrawCell(const int row, const int col, const int value) const {
+void CliApp::DrawCell(const int row, const int col, const int value) {
   if (value > 0 && value <= 7 && has_colors()) {
     attron(COLOR_PAIR(value));
     mvprintw(row, col, "[]");
