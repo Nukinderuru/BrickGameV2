@@ -48,6 +48,7 @@ class SnakeGame {
   Position GetApple() const;
   int GetScore() const;
   int GetHighScore() const;
+  int GetLevel() const;
 
   void SetCurrentTimeForTests(uint64_t now_ms);
   void ClearCurrentTimeOverrideForTests();
@@ -61,8 +62,12 @@ class SnakeGame {
   static constexpr int kPreviewSize = 4;
   static constexpr int kInitialLength = 4;
   static constexpr int kWinLength = 200;
-  static constexpr uint64_t kBaseDelayMs = 250;
-  static constexpr uint64_t kBoostDelayMs = 90;
+  static constexpr int kPointsPerLevel = 5;
+  static constexpr int kMaxLevel = 10;
+  static constexpr uint64_t kLevelOneDelayMs = 250;
+  static constexpr uint64_t kLevelDelayStepMs = 20;
+  static constexpr uint64_t kMinimumDelayMs = 70;
+  static constexpr uint64_t kMinimumBoostDelayMs = 25;
 
   void ResetBuffers();
   void StartGame();
@@ -74,6 +79,8 @@ class SnakeGame {
   bool IsOccupiedBySnake(Position position, bool ignore_tail) const;
   void Step();
   void SyncInfo();
+  int CurrentLevel() const;
+  uint64_t CurrentBaseDelayMs() const;
   uint64_t NowMs() const;
   uint64_t CurrentDelayMs() const;
 

@@ -238,8 +238,8 @@ void SnakeGame::SyncInfo() {
   }
   info_.score = score_;
   info_.high_score = high_score_;
-  info_.level = 1;
-  info_.speed = CurrentDelayMs() == kBoostDelayMs ? 2 : 1;
+  info_.level = CurrentLevel();
+  info_.speed = CurrentLevel();
   info_.pause = paused_ ? 1 : 0;
 }
 
@@ -336,6 +336,19 @@ int SnakeGame::GetScore() const { return score_; }
 
 int SnakeGame::GetHighScore() const { return high_score_; }
 
+int SnakeGame::GetLevel() const { return CurrentLevel(); }
+
+int SnakeGame::CurrentLevel() const {
+  return std::min(score_ / kPointsPerLevel + 1, kMaxLevel);
+}
+
+uint64_t SnakeGame::CurrentBaseDelayMs() const {
+  const uint64_t level_offset = static_cast<uint64_t>(CurrentLevel() - 1);
+  const uint64_t delay_drop = std::min(kLevelOneDelayMs - kMinimumDelayMs,
+                                       level_offset * kLevelDelayStepMs);
+  return kLevelOneDelayMs - delay_drop;
+}
+
 void SnakeGame::SetCurrentTimeForTests(const uint64_t now_ms) {
   use_time_override_ = true;
   current_time_override_ms_ = now_ms;
@@ -371,7 +384,10 @@ uint64_t SnakeGame::NowMs() const {
 }
 
 uint64_t SnakeGame::CurrentDelayMs() const {
-  return (accelerated_ || boost_steps_remaining_ > 0) ? kBoostDelayMs : kBaseDelayMs;
+  if (accelerated_ || boost_steps_remaining_ > 0) {
+    return std::max(kMinimumBoostDelayMs, CurrentBaseDelayMs() / 3);
+  }
+  return CurrentBaseDelayMs();
 }
 
 SnakeGame& GetSnakeGame() {

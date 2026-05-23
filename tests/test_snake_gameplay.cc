@@ -54,13 +54,13 @@ TEST(SnakeGameplayTest, SelfCollisionEndsGame) {
   EXPECT_EQ(s21::GetSnakeGame().GetState(), s21::SnakeGame::State::kGameOver);
 }
 
-TEST(SnakeGameplayTest, ActionBoostChangesReportedSpeed) {
+TEST(SnakeGameplayTest, ActionBoostDoesNotChangeDisplayedLevelSpeed) {
   snake_test::StartSnakeAt(1000);
 
   s21::userInput(Action, true);
   const GameInfo_t info = s21::updateCurrentState();
 
-  EXPECT_EQ(info.speed, 2);
+  EXPECT_EQ(info.speed, 1);
 }
 
 TEST(SnakeGameplayTest, UpdateBeforeDelayDoesNotMoveSnake) {
@@ -137,6 +137,40 @@ TEST(SnakeGameplayTest, FieldContainsAppleAndSnakeHeadMarkers) {
   EXPECT_EQ(info.field[10][5], 3);
   EXPECT_EQ(info.field[10][2], 1);
   EXPECT_EQ(info.next[0][0], 0);
+}
+
+TEST(SnakeGameplayTest, FivePointsIncreaseLevelAndSpeed) {
+  snake_test::StartSnakeAt(1000);
+  for (int index = 0; index < 5; ++index) {
+    s21::GetSnakeGame().SetSnakeForTests({{10, 0}, {10, 1}, {10, 2}, {10, 3}},
+                                         s21::SnakeGame::Direction::kRight);
+    s21::GetSnakeGame().SetStateForTests(s21::SnakeGame::State::kMoving);
+    s21::GetSnakeGame().SetAppleForTests({10, 4});
+    snake_test::AdvanceTo(1300 + index * 300);
+  }
+
+  const GameInfo_t info = s21::updateCurrentState();
+
+  EXPECT_EQ(info.score, 5);
+  EXPECT_EQ(info.level, 2);
+  EXPECT_EQ(info.speed, 2);
+  EXPECT_EQ(s21::GetSnakeGame().GetLevel(), 2);
+}
+
+TEST(SnakeGameplayTest, LevelIsCappedAtTen) {
+  snake_test::StartSnakeAt(1000);
+  for (int index = 0; index < 50; ++index) {
+    s21::GetSnakeGame().SetSnakeForTests({{10, 0}, {10, 1}, {10, 2}, {10, 3}},
+                                         s21::SnakeGame::Direction::kRight);
+    s21::GetSnakeGame().SetStateForTests(s21::SnakeGame::State::kMoving);
+    s21::GetSnakeGame().SetAppleForTests({10, 4});
+    snake_test::AdvanceTo(1300 + index * 300);
+  }
+
+  const GameInfo_t info = s21::updateCurrentState();
+  EXPECT_EQ(info.level, 10);
+  EXPECT_EQ(info.speed, 10);
+  EXPECT_EQ(s21::GetSnakeGame().GetLevel(), 10);
 }
 
 }  // namespace
