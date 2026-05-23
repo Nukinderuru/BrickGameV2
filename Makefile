@@ -2,9 +2,11 @@ CXX = g++
 CC = gcc
 CXXFLAGS = -Wall -Wextra -Werror -std=c++17
 CFLAGS = -Wall -Wextra -Werror -std=c11 -D_POSIX_C_SOURCE=200809L
+GCOV_FLAGS = --coverage
 CURSES_LIB = -lncurses
 BUILD_DIR = build
 DIST_DIR = dist
+REPORT_DIR = report
 PREFIX ?= $(HOME)/.local
 BINDIR = $(PREFIX)/bin
 OBJ_DIR = $(BUILD_DIR)/obj
@@ -66,7 +68,7 @@ uninstall:
 	rm -f $(DESTDIR)$(BINDIR)/brick_game_desktop
 
 clean:
-	rm -rf $(BUILD_DIR) $(DIST_DIR)
+	rm -rf $(BUILD_DIR) $(DIST_DIR) $(REPORT_DIR) *.gcov
 
 dvi:
 	@printf 'README.md\n\ndocs/tetris_fsm.md\ndocs/snake_fsm.md\n'
@@ -83,4 +85,23 @@ tests:
 		src/brick_game/snake/snake_game.cc -lgtest -lgtest_main -lpthread -o $(BUILD_DIR)/tests
 	$(BUILD_DIR)/tests
 
-.PHONY: all desktop install uninstall clean dvi dist tests
+gcov_report:
+	@mkdir -p $(BUILD_DIR) $(REPORT_DIR)
+	@test -f /usr/include/gtest/gtest.h || \
+		(printf 'GTest headers are not installed under /usr/include/gtest\n' && exit 1)
+	rm -f $(BUILD_DIR)/*.gcda $(BUILD_DIR)/*.gcno $(REPORT_DIR)/*.gcov $(REPORT_DIR)/coverage.txt
+	rm -rf $(REPORT_DIR)/html $(REPORT_DIR)/coverage.info
+	$(CXX) $(CXXFLAGS) $(GCOV_FLAGS) -I./src $(TEST_SRC) \
+		src/brick_game/snake/snake_api.cc src/brick_game/snake/snake_game.cc \
+		-lgtest -lgtest_main -lpthread -o $(BUILD_DIR)/tests_coverage
+	./$(BUILD_DIR)/tests_coverage
+	@if command -v lcov >/dev/null 2>&1 && command -v genhtml >/dev/null 2>&1; then \
+		lcov --capture --directory $(BUILD_DIR) --output-file $(REPORT_DIR)/coverage.info --rc lcov_branch_coverage=1; \
+		lcov --extract $(REPORT_DIR)/coverage.info '*/src/brick_game/snake/*' --output-file $(REPORT_DIR)/coverage.info --rc lcov_branch_coverage=1; \
+		genhtml $(REPORT_DIR)/coverage.info --output-directory $(REPORT_DIR)/html --branch-coverage; \
+	else \
+		gcov -r $(BUILD_DIR)/tests_coverage-snake_api.gcno $(BUILD_DIR)/tests_coverage-snake_game.gcno | tee $(REPORT_DIR)/coverage.txt; \
+		mv -f *.gcov $(REPORT_DIR)/; \
+	fi
+
+.PHONY: all desktop install uninstall clean dvi dist tests gcov_report
