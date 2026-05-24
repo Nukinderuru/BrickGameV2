@@ -35,6 +35,7 @@ class MainWindow : public QMainWindow {
   void RefreshMenuSelection();
   void RefreshGameView();
   void UpdateOverlay(ViewStatus status);
+  void UpdateWindowSize();
   void SendGameAction(int key, bool hold);
 
   AppController controller_;

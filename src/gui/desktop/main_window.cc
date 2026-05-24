@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 #include <QPalette>
+#include <QSizePolicy>
 
 namespace s21 {
 
@@ -45,6 +46,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event) {
         current_info_ = controller_.GetActiveGame().Update();
         pages_->setCurrentWidget(game_page_);
         RefreshGameView();
+        UpdateWindowSize();
       }
     } else if (event->key() == Qt::Key_Q || event->key() == Qt::Key_Escape) {
       close();
@@ -80,6 +82,7 @@ void MainWindow::StartTetris() {
   pages_->setCurrentWidget(game_page_);
   game_page_->setFocus();
   RefreshGameView();
+  UpdateWindowSize();
 }
 
 void MainWindow::StartSnake() {
@@ -88,6 +91,7 @@ void MainWindow::StartSnake() {
   pages_->setCurrentWidget(game_page_);
   game_page_->setFocus();
   RefreshGameView();
+  UpdateWindowSize();
 }
 
 void MainWindow::ReturnToMenu() {
@@ -95,6 +99,7 @@ void MainWindow::ReturnToMenu() {
   pages_->setCurrentWidget(menu_page_);
   menu_page_->setFocus();
   RefreshMenuSelection();
+  UpdateWindowSize();
 }
 
 void MainWindow::BuildUi() {
@@ -102,7 +107,9 @@ void MainWindow::BuildUi() {
 
   menu_page_ = new QWidget(this);
   menu_page_->setFocusPolicy(Qt::StrongFocus);
-  QVBoxLayout* menu_layout = new QVBoxLayout(menu_page_);
+  QVBoxLayout* menu_page_layout = new QVBoxLayout(menu_page_);
+  QVBoxLayout* menu_layout = new QVBoxLayout();
+  menu_layout->setSizeConstraint(QLayout::SetFixedSize);
   QLabel* menu_title = new QLabel("BrickGame v2.0", menu_page_);
   menu_title->setStyleSheet("font-size: 28px; font-weight: bold;");
   menu_title->setAlignment(Qt::AlignHCenter);
@@ -117,25 +124,16 @@ void MainWindow::BuildUi() {
     button->setDefault(false);
     button->setFocusPolicy(Qt::NoFocus);
   }
-  menu_layout->addWidget(menu_title);
-  menu_layout->addWidget(menu_hint_);
+  menu_layout->addWidget(menu_title, 0, Qt::AlignHCenter);
+  menu_layout->addWidget(menu_hint_, 0, Qt::AlignHCenter);
   menu_layout->addSpacing(16);
-  QHBoxLayout* tetris_layout = new QHBoxLayout();
-  tetris_layout->addStretch();
-  tetris_layout->addWidget(tetris_button_);
-  tetris_layout->addStretch();
-  menu_layout->addLayout(tetris_layout);
-  QHBoxLayout* snake_layout = new QHBoxLayout();
-  snake_layout->addStretch();
-  snake_layout->addWidget(snake_button_);
-  snake_layout->addStretch();
-  menu_layout->addLayout(snake_layout);
-  QHBoxLayout* quit_layout = new QHBoxLayout();
-  quit_layout->addStretch();
-  quit_layout->addWidget(quit_button_);
-  quit_layout->addStretch();
-  menu_layout->addLayout(quit_layout);
-  menu_layout->addStretch();
+  menu_layout->addWidget(tetris_button_, 0, Qt::AlignHCenter);
+  menu_layout->addWidget(snake_button_, 0, Qt::AlignHCenter);
+  menu_layout->addWidget(quit_button_, 0, Qt::AlignHCenter);
+  menu_page_layout->addSpacing(36);
+  menu_page_layout->addLayout(menu_layout, 0);
+  menu_page_layout->setAlignment(menu_layout, Qt::AlignHCenter | Qt::AlignTop);
+  menu_page_layout->addStretch();
   connect(tetris_button_, &QPushButton::clicked, this, &MainWindow::StartTetris);
   connect(snake_button_, &QPushButton::clicked, this, &MainWindow::StartSnake);
   connect(quit_button_, &QPushButton::clicked, this, &QWidget::close);
@@ -143,10 +141,12 @@ void MainWindow::BuildUi() {
   game_page_ = new QWidget(this);
   game_page_->setFocusPolicy(Qt::StrongFocus);
   QHBoxLayout* game_layout = new QHBoxLayout(game_page_);
+  game_layout->setSizeConstraint(QLayout::SetFixedSize);
   QVBoxLayout* left_layout = new QVBoxLayout();
   title_label_ = new QLabel(game_page_);
   title_label_->setStyleSheet("font-size: 24px; font-weight: bold;");
   board_widget_ = new BoardWidget(game_page_);
+  board_widget_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   overlay_label_ = new QLabel(board_widget_);
   overlay_label_->setAlignment(Qt::AlignCenter);
   overlay_label_->setStyleSheet(
@@ -157,6 +157,7 @@ void MainWindow::BuildUi() {
   left_layout->addWidget(board_widget_);
 
   QWidget* sidebar = new QWidget(game_page_);
+  sidebar->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
   QVBoxLayout* sidebar_layout = new QVBoxLayout(sidebar);
   score_label_ = new QLabel(sidebar);
   high_score_label_ = new QLabel(sidebar);
@@ -187,10 +188,10 @@ void MainWindow::BuildUi() {
   pages_->addWidget(game_page_);
   setCentralWidget(pages_);
   setWindowTitle("BrickGame v2.0");
-  resize(900, 620);
   setFocusPolicy(Qt::StrongFocus);
   menu_page_->setFocus();
   RefreshMenuSelection();
+  UpdateWindowSize();
 }
 
 void MainWindow::RefreshMenuSelection() {
@@ -218,6 +219,7 @@ void MainWindow::RefreshGameView() {
   controls += "Esc/Q: back to menu";
   controls_label_->setText(controls.trimmed());
   UpdateOverlay(game.GetViewStatus());
+  UpdateWindowSize();
 }
 
 void MainWindow::UpdateOverlay(const ViewStatus status) {
@@ -247,6 +249,12 @@ void MainWindow::UpdateOverlay(const ViewStatus status) {
                              280, 100);
   overlay_label_->setText(text);
   overlay_label_->show();
+}
+
+void MainWindow::UpdateWindowSize() {
+  pages_->adjustSize();
+  adjustSize();
+  setFixedSize(sizeHint());
 }
 
 void MainWindow::SendGameAction(const int key, const bool hold) {
