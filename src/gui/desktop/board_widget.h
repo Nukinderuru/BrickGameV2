@@ -19,6 +19,7 @@ class BoardWidget : public QWidget {
 
  protected:
   void paintEvent(QPaintEvent* event) override;
+  QSize sizeHint() const override;
   QSize minimumSizeHint() const override;
 
  private:

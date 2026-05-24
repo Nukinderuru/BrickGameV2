@@ -39,7 +39,11 @@ BoardWidget::BoardWidget(QWidget* parent) : QWidget(parent), info_{}, has_previe
 
 void BoardWidget::SetGameInfo(const GameInfo_t& info, const bool has_preview) {
   info_ = info;
+  const bool preview_changed = has_preview_ != has_preview;
   has_preview_ = has_preview;
+  if (preview_changed) {
+    updateGeometry();
+  }
   update();
 }
 
@@ -90,8 +94,14 @@ void BoardWidget::paintEvent(QPaintEvent* event) {
   }
 }
 
+QSize BoardWidget::sizeHint() const {
+  const int preview_width = has_preview_ ? (32 + kPreviewSize * kCellSize + 16) : 16;
+  return QSize(16 + kCols * kCellSize + preview_width,
+               16 + kRows * kCellSize + 16);
+}
+
 QSize BoardWidget::minimumSizeHint() const {
-  return QSize(16 + kCols * kCellSize + 180, 16 + kRows * kCellSize + 16);
+  return sizeHint();
 }
 
 }  // namespace s21
